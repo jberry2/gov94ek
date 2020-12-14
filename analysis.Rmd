@@ -1,0 +1,261 @@
+---
+title: "data analysis"
+author: "Joshua Berry"
+date: "12/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(GGally)
+library(knitr)
+library(gtsummary)
+library(gt)
+library(rstatix)
+```
+
+## R Markdown
+
+```{r}
+results <- read.csv("results.csv")
+
+numeric_results <- read_csv("numeric_results.csv",
+                          col_types = cols(Q36 = col_number(),
+                          Q35 = col_number(),
+                          Q37 = col_number(),
+                          Q40 = col_number(),
+                          Q41 = col_number(),
+                          Q43 = col_number(),
+                          Q45_1 = col_number(),
+                          Q47_1  = col_number(),
+                          Q49  = col_number(),
+                          Q50 = col_number(),
+                          Q51_1 = col_number(),
+                          Q51_2  = col_number(),
+                          Q51_3  = col_number(),
+                          Q51_4 = col_number(),
+                          Q51_5  = col_number(),
+                          Q56_4  = col_number(),
+                          Q2 = col_number(),
+                          Q14  = col_number(),
+                          Q16  = col_number(),
+                          Q18 = col_number(),
+                          Q19  = col_number(),
+                          Q27  = col_number(),
+                          Q26 = col_number(),
+                          Q20  = col_number(),
+                          condition = col_factor(),
+                          Q54  = col_number())) %>%
+  filter(condition %in% c("usabaseapp", "chinabaseapp",
+                         "chinalovedapp", "chinahatedapp", 
+                         "estoniabaseapp")) %>%
+    rename(state = Q2, gender = Q14, age = Q16, race = Q18, asian_ethnicity = Q19,
+         social_media = Q27, political_identification = Q20, education = Q26,
+         income = Q54)
+
+numeric_results$condition <- relevel(numeric_results$condition, ref = "usabaseapp")
+
+```
+
+
+```{r}
+china.fav.lm <- lm(Q45_1 ~ gender + age + race + education 
+                + political_identification + condition, data = numeric_results)
+
+summary(china.fav.lm)
+
+trust.lm <- lm(Q37 ~ gender + age + race + education 
+                + political_identification + condition, data = numeric_results)
+
+summary(trust.lm)
+
+china.trust.lm <- lm(Q47_1 ~ gender + age + race + education 
+                + political_identification + condition, data = numeric_results)
+
+summary(china.trust.lm)
+
+china.biz.policy.lm <- lm(Q49 ~ gender + age + race + education 
+                + political_identification + condition, data = numeric_results)
+
+summary(china.biz.policy.lm)
+
+china.biz.security.lm <- lm(Q50 ~ gender + age + race + education 
+                + political_identification + condition, data = numeric_results)
+
+summary(china.biz.security.lm)
+
+china.fav.ppl.lm <- lm(Q51_1 ~ gender + age + race + education 
+                + political_identification + condition, data = numeric_results)
+
+summary(china.fav.ppl.lm)
+
+app.usage.lm <- lm(Q36 ~ gender + age + race + education 
+                + political_identification + condition, data = numeric_results)
+
+summary(app.usage.lm)
+
+app.keep.lm <- lm(Q35 ~ gender + age + race + education 
+                + political_identification + condition, data = numeric_results)
+
+summary(app.keep.lm)
+
+app.country.factor.lm <- lm(Q40 ~ gender + age + race + education 
+                + political_identification + condition, data = numeric_results)
+
+summary(app.country.factor.lm)
+
+app.china.trust.lm <- lm(Q41 ~ gender + age + race + education 
+                + political_identification + condition, data = numeric_results)
+
+summary(app.china.trust.lm)
+
+app.china.interaction.lm <- lm(Q43 ~ gender + age + race + education 
+                + political_identification + condition, data = numeric_results)
+
+summary(app.china.interaction.lm)
+
+china.tariff.lm <- lm(Q51_1 ~ gender + age + race + education 
+                + political_identification + condition, data = numeric_results)
+
+summary(china.tariff.lm)
+
+china.science.lm <- lm(Q51_2 ~ gender + age + race + education 
+                + political_identification + condition, data = numeric_results)
+
+summary(china.science.lm)
+
+china.econ.engagement.lm <- lm(Q51_3 ~ gender + age + race + education 
+                + political_identification + condition, data = numeric_results)
+
+summary(china.econ.engagement.lm)
+
+china.students.lm <- lm(Q51_4 ~ gender + age + race + education 
+                + political_identification + condition, data = numeric_results)
+
+summary(china.students.lm)
+
+china.aid.lm <- lm(Q51_5 ~ gender + age + race + education 
+                + political_identification + condition, data = numeric_results)
+
+summary(china.aid.lm)
+```
+
+
+```{r}
+mean_china_fav <-
+  numeric_results %>%
+  group_by(condition) %>%
+  summarize(mean_china_fav = mean(Q45_1, na.rm = TRUE),
+            sd = sd(Q45_1, na.rm = TRUE),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n),
+         lower.ci = mean_china_fav - qt(1 - (0.05 / 2), n - 1) * se,
+         upper.ci = mean_china_fav + qt(1 - (0.05 / 2), n - 1) * se)
+
+china_fav_graph <-
+  mean_china_fav %>%
+ggplot(aes(x = condition, y = mean_china_fav, fill = condition)) +
+  geom_col(position=position_dodge()) +
+  geom_errorbar(mapping = aes(x = condition, ymin = lower.ci, ymax = upper.ci),
+                width = .2) + 
+  ylim(0, 100) +
+  scale_fill_discrete(name = "Condition", labels = c("USA Base App", "China Hated App",
+                         "China Loved App", "China Base App", "Alt. Base App")) +
+  scale_x_discrete(labels=c("USA Base App", "China Hated App",
+                         "China Loved App", "China Base App", "Alt. Base App")) +
+  labs(title = "The Effect of App Treatment on Favorability Towards China",
+       subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)",
+       x = "Treatment Group",
+       y = "Mean Favorability towards China",
+       source = "Original MTurk study, conducted 12/11-12/13") +
+  theme_bw()
+
+
+mean_trust <-
+  numeric_results %>%
+  group_by(condition) %>%
+  summarize(mean_trust = mean(Q37, na.rm = TRUE),
+            sd = sd(Q37, na.rm = TRUE),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n),
+         lower.ci = mean_trust - qt(1 - (0.05 / 2), n - 1) * se,
+         upper.ci = mean_trust + qt(1 - (0.05 / 2), n - 1) * se)
+
+trust_graph <-
+mean_trust %>%
+ggplot(aes(x = condition, y = mean_trust, fill = condition)) +
+  geom_col(position=position_dodge()) +
+  geom_errorbar(mapping = aes(x = condition, ymin = lower.ci, ymax = upper.ci),
+                width = .2) + 
+  ylim(0, 5) +
+  scale_fill_discrete(name = "Condition", labels = c("USA Base App", "China Hated App",
+                         "China Loved App", "China Base App", "Alt. Base App")) +
+  scale_x_discrete(labels=c("USA Base App", "China Hated App",
+                         "China Loved App", "China Base App", "Alt. Base App")) +
+  labs(title = "The Effect of App Treatment on Perceived Company Trust",
+       subtitle = "Scale of 1 (Strongly Disagree) to 5 (Strongly Agree)",
+       x = "Treatment Group",
+       y = "Mean Company Trust",
+       source = "Original MTurk study, conducted 12/11-12/13") +
+  theme_bw()
+
+mean_china_biz_policy <-
+  numeric_results %>%
+  group_by(condition) %>%
+  summarize(mean_policy = mean(Q49, na.rm = TRUE),
+            sd = sd(Q49, na.rm = TRUE),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n),
+         lower.ci = mean_policy - qt(1 - (0.05 / 2), n - 1) * se,
+         upper.ci = mean_policy + qt(1 - (0.05 / 2), n - 1) * se)
+
+china_biz_policy_graph <-
+mean_china_biz_policy %>%
+ggplot(aes(x = condition, y = mean_policy, fill = condition)) +
+  geom_col(position=position_dodge()) +
+  geom_errorbar(mapping = aes(x = condition, ymin = lower.ci, ymax = upper.ci),
+                width = .2) + 
+  ylim(0, 3) +
+  scale_fill_discrete(name = "Condition", labels = c("USA Base App", "China Hated App",
+                         "China Loved App", "China Base App", "Alt. Base App")) +
+  scale_x_discrete(labels=c("USA Base App", "China Hated App",
+                         "China Loved App", "China Base App", "Alt. Base App")) +
+  labs(title = "The Effect of App Treatment on Attitudes about U.S.-China Business Interaction",
+       subtitle = "Scale of 1 (Undertake friendly cooperation) to 3 (Ban Chinese companies)",
+       x = "Treatment Group",
+       y = "Mean Attitude",
+       source = "Original MTurk study, conducted 12/11-12/13") +
+  theme_bw()
+
+
+mean_china_ppl_fav <-
+  numeric_results %>%
+  group_by(condition) %>%
+  summarize(mean_china_ppl_fav = mean(Q45_1, na.rm = TRUE),
+            sd = sd(Q45_1, na.rm = TRUE),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n),
+         lower.ci = mean_china_ppl_fav - qt(1 - (0.05 / 2), n - 1) * se,
+         upper.ci = mean_china_ppl_fav + qt(1 - (0.05 / 2), n - 1) * se)
+
+china_ppl_fav_graph <-
+  mean_china_ppl_fav %>%
+ggplot(aes(x = condition, y = mean_china_ppl_fav, fill = condition)) +
+  geom_col(position=position_dodge()) +
+  geom_errorbar(mapping = aes(x = condition, ymin = lower.ci, ymax = upper.ci),
+                width = .2) + 
+  ylim(0, 100) +
+  scale_fill_discrete(name = "Condition", labels = c("USA Base App", "China Hated App",
+                         "China Loved App", "China Base App", "Alt. Base App")) +
+  scale_x_discrete(labels=c("USA Base App", "China Hated App",
+                         "China Loved App", "China Base App", "Alt. Base App")) +
+  labs(title = "The Effect of App Treatment on Favorability Towards Chinese Citizens",
+       subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)",
+       x = "Treatment Group",
+       y = "Mean Favorability towards Chinese Citizens",
+       source = "Original MTurk study, conducted 12/11-12/13") +
+  theme_bw()
+
+```
+
