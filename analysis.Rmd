@@ -52,7 +52,13 @@ numeric_results <- read_csv("numeric_results.csv",
                          "estoniabaseapp")) %>%
     rename(state = Q2, gender = Q14, age = Q16, race = Q18, asian_ethnicity = Q19,
          social_media = Q27, political_identification = Q20, education = Q26,
-         income = Q54)
+         income = Q54) %>%
+  mutate(condition_scale = case_when(condition == "usabaseapp" ~ 1,
+                                     condition == "chinabaseapp" ~ 2,
+                                     condition == "chinahatedapp" ~ 3,
+                                     condition == "chinalovedapp" ~ 4,
+                                     condition == "estoniabaseapp" ~ 5,
+                                     TRUE ~ NA_real_))
 
 numeric_results$condition <- relevel(numeric_results$condition, ref = "usabaseapp")
 
@@ -257,5 +263,23 @@ ggplot(aes(x = condition, y = mean_china_ppl_fav, fill = condition)) +
        source = "Original MTurk study, conducted 12/11-12/13") +
   theme_bw()
 
+```
+
+```{r}
+fav_regression_graph <-
+  numeric_results %>%
+   ggplot(aes(x = condition_scale, y = as.numeric(Q45_1), color = condition_scale)) +
+   geom_point(alpha = .3) +
+   geom_smooth(method = "loess", formula = y~x) +
+  scale_color_continuous(name = "Condition", limits = c(1,5), labels = c("USA Base App", "China Hated App",
+                         "China Loved App", "China Base App", "Alt. Base App")) +
+  scale_x_continuous(labels=c("USA Base App", "China Hated App",
+                         "China Loved App", "China Base App", "Alt. Base App")) +
+  labs(title = "LOEES Regression of Treatment Group Against Favorability Towards China",
+       subtitle = "favorability ~ treatment, Feeling Thermometer of 0 (Coldest) to 100 (Warmest)",
+       x = "Treatment Group",
+       y = "favorability",
+       source = "Original mTurk study, conducted 12/11-12/13") +
+  theme_bw()
 ```
 
