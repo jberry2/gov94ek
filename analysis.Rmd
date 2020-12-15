@@ -145,6 +145,16 @@ china.aid.lm <- lm(Q51_5 ~ gender + age + race + education
                 + political_identification + condition, data = numeric_results)
 
 summary(china.aid.lm)
+
+fav.appusage.lm <- lm(Q45_1 ~ gender + age + race + education 
+                + political_identification + Q43, data = numeric_results)
+
+summary(fav.appusage.lm)
+
+trust.appusage.lm <- lm(Q37 ~ gender + age + race + education 
+                + political_identification + Q43, data = numeric_results)
+
+summary(trust.appusage.lm)
 ```
 
 
@@ -228,7 +238,7 @@ ggplot(aes(x = condition, y = mean_policy, fill = condition)) +
   scale_x_discrete(labels=c("USA Base App", "China Hated App",
                          "China Loved App", "China Base App", "Alt. Base App")) +
   labs(title = "The Effect of App Treatment on Attitudes about U.S.-China Business Interaction",
-       subtitle = "Scale of 1 (Undertake friendly cooperation) to 3 (Ban Chinese companies)",
+       subtitle = "Scale of 1 (Ban Chinese companies) to 3 (Undertake friendly cooperation)",
        x = "Treatment Group",
        y = "Mean Attitude",
        source = "Original MTurk study, conducted 12/11-12/13") +
@@ -263,6 +273,34 @@ ggplot(aes(x = condition, y = mean_china_ppl_fav, fill = condition)) +
        source = "Original MTurk study, conducted 12/11-12/13") +
   theme_bw()
 
+mean_origin_country <-
+  numeric_results %>%
+  group_by(condition) %>%
+  summarize(mean_origin_country = mean(Q40, na.rm = TRUE),
+            sd = sd(Q40, na.rm = TRUE),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n),
+         lower.ci = mean_origin_country - qt(1 - (0.05 / 2), n - 1) * se,
+         upper.ci = mean_origin_country + qt(1 - (0.05 / 2), n - 1) * se)
+
+origin_country_graph <-
+  mean_origin_country %>%
+ggplot(aes(x = condition, y = mean_origin_country, fill = condition)) +
+  geom_col(position=position_dodge()) +
+  geom_errorbar(mapping = aes(x = condition, ymin = lower.ci, ymax = upper.ci),
+                width = .2) + 
+  ylim(0, 5) +
+  scale_fill_discrete(name = "Condition", labels = c("USA Base App", "China Hated App",
+                         "China Loved App", "China Base App", "Alt. Base App")) +
+  scale_x_discrete(labels=c("USA Base App", "China Hated App",
+                         "China Loved App", "China Base App", "Alt. Base App")) +
+  labs(title = "The Effect of App Treatment on Whether Origin Country Factored into Download Decision",
+       subtitle = "Scale of 1 (Strongly Disagree) to 5 (Strongly Agree)",
+       x = "Treatment Group",
+       y = "Mean Attitude about Origin Country",
+       source = "Original MTurk study, conducted 12/11-12/13") +
+  theme_bw()
+
 ```
 
 ```{r}
@@ -271,14 +309,81 @@ fav_regression_graph <-
    ggplot(aes(x = condition_scale, y = as.numeric(Q45_1), color = condition_scale)) +
    geom_point(alpha = .3) +
    geom_smooth(method = "loess", formula = y~x) +
-  scale_color_continuous(name = "Condition", limits = c(1,5), labels = c("USA Base App", "China Hated App",
-                         "China Loved App", "China Base App", "Alt. Base App")) +
-  scale_x_continuous(labels=c("USA Base App", "China Hated App",
-                         "China Loved App", "China Base App", "Alt. Base App")) +
+  scale_color_continuous(name = "Condition", limits = c(1,5), labels = c("USA Base App", "China Base App",
+                         "China Hated App", "China Loved App", "Alt. Base App")) +
+  scale_x_continuous(labels=c("USA Base App", "China Base App",
+                         "China Hated App", "China Loved App", "Alt. Base App")) +
   labs(title = "LOEES Regression of Treatment Group Against Favorability Towards China",
        subtitle = "favorability ~ treatment, Feeling Thermometer of 0 (Coldest) to 100 (Warmest)",
        x = "Treatment Group",
-       y = "favorability",
+       y = "Favorability",
+       source = "Original mTurk study, conducted 12/11-12/13") +
+  theme_bw()
+
+trust_regression_graph <-
+   numeric_results %>%
+   ggplot(aes(x = condition_scale, y = as.numeric(Q37), color = condition_scale)) +
+   geom_point(alpha = .3) +
+   geom_smooth(method = "loess", formula = y~x) +
+  scale_color_continuous(name = "Condition", limits = c(1,5), labels = c("USA Base App", "China Base App",
+                         "China Hated App", "China Loved App", "Alt. Base App")) +
+  scale_x_continuous(labels=c("USA Base App", "China Base App",
+                         "China Hated App", "China Loved App", "Alt. Base App")) +
+  labs(title = "LOEES Regression of Treatment Group Against Trust Assigned to Taply",
+       subtitle = "trust ~ treatment, Scale of 1 (Strongly Disagree) to 5 (Strongly Agree)",
+       x = "Treatment Group",
+       y = "Assigned Trust",
+       source = "Original mTurk study, conducted 12/11-12/13") +
+  theme_bw()
+
+china_biz_regression_graph <-
+   numeric_results %>%
+   ggplot(aes(x = condition_scale, y = as.numeric(Q49), color = condition_scale)) +
+   geom_point(alpha = .3) +
+   geom_smooth(method = "loess", formula = y~x) +
+  scale_color_continuous(name = "Condition", limits = c(1,5), labels = c("USA Base App", "China Base App",
+                         "China Hated App", "China Loved App", "Alt. Base App")) +
+  scale_x_continuous(labels=c("USA Base App", "China Base App",
+                         "China Hated App", "China Loved App", "Alt. Base App")) +
+  labs(title = "LOEES Regression of Treatment Group Against Policy Preference about Chinese 
+       Business Integration",
+       subtitle = "business_policy ~ treatment, 
+       Scale of 1 (Ban Chinese companies) to 3 (Undertake friendly cooperation)",
+       x = "Treatment Group",
+       y = "Policy Preference",
+       source = "Original mTurk study, conducted 12/11-12/13") +
+  theme_bw()
+
+china_ppl_fav_regression_graph <-
+   numeric_results %>%
+   ggplot(aes(x = condition_scale, y = as.numeric(Q45_1), color = condition_scale)) +
+   geom_point(alpha = .3) +
+   geom_smooth(method = "loess", formula = y~x) +
+  scale_color_continuous(name = "Condition", limits = c(1,5), labels = c("USA Base App", "China Base App",
+                         "China Hated App", "China Loved App", "Alt. Base App")) +
+  scale_x_continuous(labels=c("USA Base App", "China Base App",
+                         "China Hated App", "China Loved App", "Alt. Base App")) +
+  labs(title = "LOEES Regression of Treatment Group Against Favorability of Chinese Citizens",
+       subtitle = "people_favorability ~ treatment, Feeling Thermometer of 0 (Coldest) to 100 (Warmest)",
+       x = "Treatment Group",
+       y = "Favorability",
+       source = "Original mTurk study, conducted 12/11-12/13") +
+  theme_bw()
+
+origin_country_regression_graph <-
+   numeric_results %>%
+   ggplot(aes(x = condition_scale, y = as.numeric(Q40), color = condition_scale)) +
+   geom_point(alpha = .3) +
+   geom_smooth(method = "loess", formula = y~x) +
+  scale_color_continuous(name = "Condition", limits = c(1,5), labels = c("USA Base App", "China Base App",
+                         "China Hated App", "China Loved App", "Alt. Base App")) +
+  scale_x_continuous(labels=c("USA Base App", "China Base App",
+                         "China Hated App", "China Loved App", "Alt. Base App")) +
+  labs(title = "LOEES Regression of Treatment Group Against Origin Country 
+       Factoring into Download Decision",
+       subtitle = "origin_country ~ treatment, Scale of 1 (Strongly Disagree) to 5 (Strongly Agree)",
+       x = "Treatment Group",
+       y = "Attitude of Origin Country Factoring into Download",
        source = "Original mTurk study, conducted 12/11-12/13") +
   theme_bw()
 ```
