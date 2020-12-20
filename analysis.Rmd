@@ -71,10 +71,25 @@ china.fav.lm <- lm(Q45_1 ~ gender + age + race + education
 
 summary(china.fav.lm)
 
+china.fav.tbl <-  tbl_regression(china.fav.lm, intercept = TRUE,
+                 estimate_fun = function(x) style_sigfig(x, digits = 4)) %>%
+  as_gt() %>%
+  tab_header(title = "Tbl. 1: Regression of Country-of-Origin Treatment Group Against Favorability Towards China", 
+  subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)") %>%
+    tab_source_note(md("Original MTurk Study, conducted Dec. 11-12, 2020"))
+
+
 trust.lm <- lm(Q37 ~ gender + age + race + education 
                 + political_identification + condition, data = numeric_results)
 
 summary(trust.lm)
+
+trust.tbl <-  tbl_regression(trust.lm, intercept = TRUE,
+                 estimate_fun = function(x) style_sigfig(x, digits = 4)) %>%
+  as_gt() %>%
+  tab_header(title = "Tbl. 2: Regression of Treatment Group Against Assigned Trust towards App Company", 
+  subtitle = "Scale of 1 (Strongly Disagree) to 5 (Strongly Agree)") %>%
+    tab_source_note(md("Original MTurk Study, conducted Dec. 11-12, 2020"))
 
 china.trust.lm <- lm(Q47_1 ~ gender + age + race + education 
                 + political_identification + condition, data = numeric_results)
@@ -89,12 +104,28 @@ summary(china.biz.policy.lm)
 china.biz.security.lm <- lm(Q50 ~ gender + age + race + education 
                 + political_identification + condition, data = numeric_results)
 
+niz.policy.tbl <-  tbl_regression(china.biz.policy.lm, intercept = TRUE,
+                 estimate_fun = function(x) style_sigfig(x, digits = 4)) %>%
+  as_gt() %>%
+  tab_header(title = "Tbl. 4: Regression of Treatment Group Against Policy Preference about Chinese 
+       Business Integration", 
+  subtitle = "Scale of 1 (Ban Chinese companies) to 3 (Undertake friendly cooperation)") %>%
+    tab_source_note(md("Original MTurk Study, conducted Dec. 11-12, 2020"))
+
 summary(china.biz.security.lm)
 
-china.fav.ppl.lm <- lm(Q51_1 ~ gender + age + race + education 
+china.fav.ppl.lm <- lm(Q56_4 ~ gender + age + race + education 
                 + political_identification + condition, data = numeric_results)
 
 summary(china.fav.ppl.lm)
+
+china.ppl.fav.tbl <-  tbl_regression(china.fav.ppl.lm, intercept = TRUE,
+                 estimate_fun = function(x) style_sigfig(x, digits = 4)) %>%
+  as_gt() %>%
+  tab_header(title = "Tbl. 5: Regression of Country-of-Origin Treatment Group Against Favorability Towards Chinese Citizens", 
+  subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)") %>%
+    tab_source_note(md("Original MTurk Study, conducted Dec. 11-12, 2020"))
+
 
 app.usage.lm <- lm(Q36 ~ gender + age + race + education 
                 + political_identification + condition, data = numeric_results)
@@ -110,6 +141,14 @@ app.country.factor.lm <- lm(Q40 ~ gender + age + race + education
                 + political_identification + condition, data = numeric_results)
 
 summary(app.country.factor.lm)
+
+country.factor.tbl <-  tbl_regression(app.country.factor.lm, intercept = TRUE,
+                 estimate_fun = function(x) style_sigfig(x, digits = 4)) %>%
+  as_gt() %>%
+  tab_header(title = "Tbl. 3: Regression of Treatment Group Against Origin Country 
+       Factoring into Download Decision", 
+  subtitle = "Scale of 1 (Strongly Disagree) to 5 (Strongly Agree)") %>%
+    tab_source_note(md("Original MTurk Study, conducted Dec. 11-12, 2020"))
 
 app.china.trust.lm <- lm(Q41 ~ gender + age + race + education 
                 + political_identification + condition, data = numeric_results)
@@ -248,8 +287,8 @@ ggplot(aes(x = condition, y = mean_policy, fill = condition)) +
 mean_china_ppl_fav <-
   numeric_results %>%
   group_by(condition) %>%
-  summarize(mean_china_ppl_fav = mean(Q45_1, na.rm = TRUE),
-            sd = sd(Q45_1, na.rm = TRUE),
+  summarize(mean_china_ppl_fav = mean(Q56_4, na.rm = TRUE),
+            sd = sd(Q56_4, na.rm = TRUE),
             n = n()) %>%
   mutate(se = sd / sqrt(n),
          lower.ci = mean_china_ppl_fav - qt(1 - (0.05 / 2), n - 1) * se,
@@ -272,6 +311,8 @@ ggplot(aes(x = condition, y = mean_china_ppl_fav, fill = condition)) +
        y = "Mean Favorability towards Chinese Citizens",
        source = "Original MTurk study, conducted 12/11-12/13") +
   theme_bw()
+
+
 
 mean_origin_country <-
   numeric_results %>%
@@ -320,6 +361,44 @@ fav_regression_graph <-
        source = "Original mTurk study, conducted 12/11-12/13") +
   theme_bw()
 
+
+labels <- c(1 == "Democrat", 2 == "Republican", 3 == "Independent")
+
+china_ppl_fav_graph_party <-
+  numeric_results %>%
+  filter(political_identification %in% c(1,2,3)) %>%
+  group_by(political_identification) %>%
+ggplot(aes(y = Q45_1, fill = condition)) +
+  geom_boxplot() +
+  facet_grid(.~political_identification,
+             labeller = labeller(labels)) +
+  scale_fill_discrete(name = "Treatment") +
+          labs(title = "Effect of Treatment Assignment and Political Identification
+               on American Attitudes Towards China ",
+               subtitle = "0 = Very Cold; 50 = Not particuarly Warm or Cold;
+       100 = Very Warm",
+               x = "",
+               y = "American Attitudes") +
+  theme(axis.text.x=element_blank()) +
+          theme_bw()
+
+trust_graph_party <-
+  numeric_results %>%
+  filter(political_identification %in% c(1,2,3)) %>%
+  group_by(condition) %>%
+ggplot(aes(y = Q37, color = condition)) +
+  geom_boxplot() +
+  facet_grid(.~political_identification,
+             labeller = labeller(labels)) +
+  scale_fill_discrete(name = "Treatment") +
+          labs(title = "Effect of Treatment Assignment and Political Identification
+               on Trust Assigned to Taply ",
+               subtitle = "Scale of 1 (Strongly Disagree) to 5 (Strongly Agree)",
+               x = "",
+               y = "Assigned Trust") +
+  theme(axis.text.x=element_blank()) +
+          theme_bw()
+
 trust_regression_graph <-
    numeric_results %>%
    ggplot(aes(x = condition_scale, y = as.numeric(Q37), color = condition_scale)) +
@@ -356,7 +435,7 @@ china_biz_regression_graph <-
 
 china_ppl_fav_regression_graph <-
    numeric_results %>%
-   ggplot(aes(x = condition_scale, y = as.numeric(Q45_1), color = condition_scale)) +
+   ggplot(aes(x = condition_scale, y = as.numeric(Q56_4), color = condition_scale)) +
    geom_point(alpha = .3) +
    geom_smooth(method = "loess", formula = y~x) +
   scale_color_continuous(name = "Condition", limits = c(1,5), labels = c("USA Base App", "China Base App",
