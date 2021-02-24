@@ -1,7 +1,7 @@
 ---
-title: "data analysis"
+title: "old_analysis"
 author: "Joshua Berry"
-date: "12/14/2020"
+date: "2/23/2021"
 output: html_document
 ---
 
@@ -20,7 +20,7 @@ library(rstatix)
 ```{r}
 results <- read.csv("results.csv")
 
-numeric_results <- read_csv("numeric_results_cut.csv",
+numeric_results <- read_csv("numeric_results_2.csv",
                           col_types = cols(Q36 = col_number(),
                           Q35 = col_number(),
                           Q37 = col_number(),
@@ -52,7 +52,7 @@ numeric_results <- read_csv("numeric_results_cut.csv",
                          "estoniabaseapp")) %>%
     rename(state = Q2, gender = Q14, age = Q16, race = Q18, asian_ethnicity = Q19,
          social_media = Q27, political_identification = Q20, education = Q26,
-         income = Q54, time_spent_using_chinese_apps = Q43) %>%
+         income = Q54) %>%
   mutate(condition_scale = case_when(condition == "usabaseapp" ~ 1,
                                      condition == "chinabaseapp" ~ 2,
                                      condition == "chinahatedapp" ~ 3,
@@ -82,33 +82,9 @@ numeric_results <- read_csv("numeric_results_cut.csv",
                                      education == 6 ~ 12,
                                      education == 7 ~ 17,
                                      education == 8 ~ 17,
-                                     TRUE ~ NA_real_)) %>%
-        mutate(Q51_1 = case_when(Q51_1 == 1 ~ 1,
-                                     Q51_1 == 2 ~ 0,
-                                     TRUE ~ NA_real_)) %>%
-          mutate(Q51_2 = case_when(Q51_2 == 1 ~ 1,
-                                     Q51_2 == 2 ~ 0,
-                                     TRUE ~ NA_real_)) %>%
-          mutate(Q51_3 = case_when(Q51_3 == 1 ~ 1,
-                                     Q51_3 == 2 ~ 0,
-                                     TRUE ~ NA_real_)) %>%
-          mutate(Q51_4 = case_when(Q51_4 == 1 ~ 1,
-                                     Q51_4 == 2 ~ 0,
-                                     TRUE ~ NA_real_)) %>%
-            mutate(Q51_5 = case_when(Q51_5 == 1 ~ 1,
-                                     Q51_5 == 2 ~ 0,
-                                     TRUE ~ NA_real_)) %>%
-            mutate(time_spent_using_chinese_apps = case_when(time_spent_using_chinese_apps == 1 ~ 0,
-                                     time_spent_using_chinese_apps == 2 ~ 1,
-                                     time_spent_using_chinese_apps == 3 ~ 2,
-                                     time_spent_using_chinese_apps == 4 ~ 4,
-                                     time_spent_using_chinese_apps == 5 ~ 9,
-                                     time_spent_using_chinese_apps == 6 ~ 15,
                                      TRUE ~ NA_real_))
 
 numeric_results$condition <- relevel(numeric_results$condition, ref = "usabaseapp")
-
-numeric_results$race<- factor(numeric_results$race, levels = c("Black", "Asian", "White", "Hispanic", "Other"))
 
 mean(numeric_results$age, na.rm = TRUE)
   
@@ -127,8 +103,7 @@ china.fav.tbl <-  tbl_regression(china.fav.lm, intercept = TRUE,
   as_gt() %>%
   tab_header(title = "Tbl. 1: Regression of Country-of-Origin Treatment Group Against Favorability Towards China", 
   subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)") %>%
-    tab_source_note(md("Original MTurk Study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354"))
+    tab_source_note(md("Original MTurk Study, conducted Dec. 11-12, 2020"))
 
 
 trust.lm <- lm(Q37 ~ gender + age + race + education 
@@ -141,8 +116,7 @@ trust.tbl <-  tbl_regression(trust.lm, intercept = TRUE,
   as_gt() %>%
   tab_header(title = "Tbl. 2: Regression of Treatment Group Against Assigned Trust towards App Company", 
   subtitle = "Scale of 1 (Strongly Disagree) to 5 (Strongly Agree)") %>%
-    tab_source_note(md("Original MTurk Study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354"))
+    tab_source_note(md("Original MTurk Study, conducted Dec. 11-12, 2020"))
 
 china.trust.lm <- lm(Q47_1 ~ gender + age + race + education 
                 + political_identification + condition, data = numeric_results)
@@ -154,6 +128,8 @@ china.biz.policy.lm <- lm(Q49 ~ gender + age + race + education
 
 summary(china.biz.policy.lm)
 
+china.biz.security.lm <- lm(Q50 ~ gender + age + race + education 
+                + political_identification + condition, data = numeric_results)
 
 niz.policy.tbl <-  tbl_regression(china.biz.policy.lm, intercept = TRUE,
                  estimate_fun = function(x) style_sigfig(x, digits = 4)) %>%
@@ -161,9 +137,9 @@ niz.policy.tbl <-  tbl_regression(china.biz.policy.lm, intercept = TRUE,
   tab_header(title = "Tbl. 4: Regression of Treatment Group Against Policy Preference about Chinese 
        Business Integration", 
   subtitle = "Scale of 1 (Ban Chinese companies) to 3 (Undertake friendly cooperation)") %>%
-    tab_source_note(md("Original MTurk Study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354"))
+    tab_source_note(md("Original MTurk Study, conducted Dec. 11-12, 2020"))
 
+summary(china.biz.security.lm)
 
 china.fav.ppl.lm <- lm(Q56_4 ~ gender + age + race + education 
                 + political_identification + condition, data = numeric_results)
@@ -175,8 +151,7 @@ china.ppl.fav.tbl <-  tbl_regression(china.fav.ppl.lm, intercept = TRUE,
   as_gt() %>%
   tab_header(title = "Tbl. 5: Regression of Country-of-Origin Treatment Group Against Favorability Towards Chinese Citizens", 
   subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)") %>%
-    tab_source_note(md("Original MTurk Study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354"))
+    tab_source_note(md("Original MTurk Study, conducted Dec. 11-12, 2020"))
 
 
 app.usage.lm <- lm(Q36 ~ gender + age + race + education 
@@ -194,8 +169,7 @@ app.keep.lm.tbl <-  tbl_regression(app.keep.lm, intercept = TRUE,
   as_gt() %>%
   tab_header(title = "Tbl. 3: Regression of Treatment Group Against Keep/Delete Decision", 
   subtitle = "Binary Scale of 0 (Delete Taply) to 1 (Keep Taply)") %>%
-    tab_source_note(md("Original MTurk Study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354"))
+    tab_source_note(md("Original MTurk Study, conducted Dec. 11-12, 2020"))
 
 app.country.factor.lm <- lm(Q40 ~ gender + age + race + education 
                 + political_identification + condition, data = numeric_results)
@@ -208,8 +182,7 @@ country.factor.tbl <-  tbl_regression(app.country.factor.lm, intercept = TRUE,
   tab_header(title = "Tbl. 3: Regression of Treatment Group Against Origin Country 
        Factoring into Download Decision", 
   subtitle = "Scale of 1 (Strongly Disagree) to 5 (Strongly Agree)") %>%
-    tab_source_note(md("Original MTurk Study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354"))
+    tab_source_note(md("Original MTurk Study, conducted Dec. 11-12, 2020"))
 
 app.china.trust.lm <- lm(Q41 ~ gender + age + race + education 
                 + political_identification + condition, data = numeric_results)
@@ -221,62 +194,45 @@ app.china.interaction.lm <- lm(Q43 ~ gender + age + race + education
 
 summary(app.china.interaction.lm)
 
-china.tariff.glm <- glm(Q51_1 ~ gender + age + race + education 
+china.tariff.lm <- lm(Q51_1 ~ gender + age + race + education 
                 + political_identification + condition, data = numeric_results)
 
-summary(china.tariff.glm)
+summary(china.tariff.lm)
 
-china.science.glm <- glm(Q51_2 ~ gender + age + race + education 
+china.science.lm <- lm(Q51_2 ~ gender + age + race + education 
                 + political_identification + condition, data = numeric_results)
 
-summary(china.science.glm)
+summary(china.science.lm)
 
-china.econ.engagement.glm <- glm(Q51_3 ~ gender + age + race + education 
+china.econ.engagement.lm <- lm(Q51_3 ~ gender + age + race + education 
                 + political_identification + condition, data = numeric_results)
 
-summary(china.econ.engagement.glm)
+summary(china.econ.engagement.lm)
 
-econ.engagement.tbl <-  tbl_regression(china.econ.engagement.glm, intercept = TRUE,
-                 estimate_fun = function(x) style_sigfig(x, digits = 4)) %>%
-  as_gt() %>%
-  tab_header(title = "Tbl. x: Logistic Regression of Treatment Group Against Restricting Economic Engagement 
-             between American and Chinese Companies", 
-  subtitle = "Binary Scale of 0 (Oppose) to 1 (Support)") %>%
-    tab_source_note(md("Original MTurk Study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354"))
-
-china.students.glm <- glm(Q51_4 ~ gender + age + race + education 
+china.students.lm <- lm(Q51_4 ~ gender + age + race + education 
                 + political_identification + condition, data = numeric_results)
 
-summary(china.students.glm)
+summary(china.students.lm)
 
-china.aid.glm <- lm(Q51_5 ~ gender + age + race + education 
+china.aid.lm <- lm(Q51_5 ~ gender + age + race + education 
                 + political_identification + condition, data = numeric_results)
 
-summary(china.aid.glm)
+summary(china.aid.lm)
 
 fav.appusage.lm <- lm(Q45_1 ~ gender + age + race + education 
-                + political_identification + time_spent_using_chinese_apps, data = numeric_results)
+                + political_identification + Q43, data = numeric_results)
 
 summary(fav.appusage.lm)
 
-fav.appusage.tbl <-  tbl_regression(fav.appusage.lm, intercept = TRUE,
-                 estimate_fun = function(x) style_sigfig(x, digits = 4)) %>%
-  as_gt() %>%
-  tab_header(title = "Tbl. x:  Regression of Time Spent Using Chinese Apps Against Favorability Towards China", 
-  subtitle = "Binary Scale of 0 (Oppose) to 1 (Support)") %>%
-    tab_source_note(md("Original MTurk Study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354"))
-
 trust.appusage.lm <- lm(Q37 ~ gender + age + race + education 
-                + political_identification + time_spent_using_chinese_apps, data = numeric_results)
+                + political_identification + Q43, data = numeric_results)
 
 summary(trust.appusage.lm)
 ```
 
 
 ```{r}
-mean_china_fav <-
+mean_china_fav2 <-
   numeric_results %>%
   group_by(condition) %>%
   summarize(mean_china_fav = mean(Q45_1, na.rm = TRUE),
@@ -301,8 +257,7 @@ ggplot(aes(x = condition, y = mean_china_fav, fill = condition)) +
        subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)",
        x = "Treatment Group",
        y = "Mean Favorability towards China",
-       source = "Original MTurk study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354") +
+       source = "Original MTurk study, conducted 12/11-12/13") +
   theme_bw()
 
 mean_keep <-
@@ -329,8 +284,7 @@ ggplot(aes(x = condition, y = mean_keep, fill = condition)) +
        subtitle = "Scale of 0 (Delete Taply) to 1 (Keep Taply)",
        x = "Treatment Group",
        y = "Mean Keep/Delete",
-       source = "Original MTurk study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354") +
+       source = "Original MTurk study, conducted 12/11-12/13") +
   theme_bw()
 
 mean_trust <-
@@ -358,15 +312,14 @@ ggplot(aes(x = condition, y = mean_trust, fill = condition)) +
        subtitle = "Scale of 1 (Strongly Disagree) to 5 (Strongly Agree)",
        x = "Treatment Group",
        y = "Mean Company Trust",
-       source = "Original MTurk study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 3544") +
+       source = "Original MTurk study, conducted 12/11-12/13") +
   theme_bw()
 
 mean_china_biz_policy <-
   numeric_results %>%
   group_by(condition) %>%
-  summarize(mean_policy = mean(Q51_3, na.rm = TRUE),
-            sd = sd(Q51_3, na.rm = TRUE),
+  summarize(mean_policy = mean(Q49, na.rm = TRUE),
+            sd = sd(Q49, na.rm = TRUE),
             n = n()) %>%
   mutate(se = sd / sqrt(n),
          lower.ci = mean_policy - qt(1 - (0.05 / 2), n - 1) * se,
@@ -378,46 +331,16 @@ ggplot(aes(x = condition, y = mean_policy, fill = condition)) +
   geom_col(position=position_dodge()) +
   geom_errorbar(mapping = aes(x = condition, ymin = lower.ci, ymax = upper.ci),
                 width = .2) + 
-  ylim(0, 1) +
-  scale_fill_discrete(name = "Condition", labels = c("USA Base App", "China Hated App",
-                         "China Loved App", "China Base App", "Alt. Base App")) +
-  scale_x_discrete(labels=c("USA Base App", "China Hated App",
-                         "China Loved App", "China Base App", "Alt. Base App")) +
-  labs(title = "The Effect of App Treatment on Attitudes about U.S.-China Business Interaction",
-       subtitle = "Scale of 1 (Restrict economic engagement) to 0 (Don't restrict economic engagement)",
-       x = "Treatment Group",
-       y = "Mean Attitude",
-       source = "Original MTurk study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354") +
-  theme_bw()
-
-mean_china_threat_policy <-
-  numeric_results %>%
-  group_by(condition) %>%
-  summarize(mean_policy = mean(Q49, na.rm = TRUE),
-            sd = sd(Q49, na.rm = TRUE),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n),
-         lower.ci = mean_policy - qt(1 - (0.05 / 2), n - 1) * se,
-         upper.ci = mean_policy + qt(1 - (0.05 / 2), n - 1) * se)
-
-mean_china_threat_policy <-
-mean_china_biz_policy %>%
-ggplot(aes(x = condition, y = mean_policy, fill = condition)) +
-  geom_col(position=position_dodge()) +
-  geom_errorbar(mapping = aes(x = condition, ymin = lower.ci, ymax = upper.ci),
-                width = .2) + 
   ylim(0, 3) +
   scale_fill_discrete(name = "Condition", labels = c("USA Base App", "China Hated App",
                          "China Loved App", "China Base App", "Alt. Base App")) +
   scale_x_discrete(labels=c("USA Base App", "China Hated App",
                          "China Loved App", "China Base App", "Alt. Base App")) +
-  labs(title = "The Effect of App Treatment on Attitudes about China as a Threat",
+  labs(title = "The Effect of App Treatment on Attitudes about U.S.-China Business Interaction",
        subtitle = "Scale of 1 (Ban Chinese companies) to 3 (Undertake friendly cooperation)",
        x = "Treatment Group",
        y = "Mean Attitude",
-       source = "Original MTurk study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354") +
+       source = "Original MTurk study, conducted 12/11-12/13") +
   theme_bw()
 
 
@@ -446,8 +369,7 @@ ggplot(aes(x = condition, y = mean_china_ppl_fav, fill = condition)) +
        subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)",
        x = "Treatment Group",
        y = "Mean Favorability towards Chinese Citizens",
-       source = "Original MTurk study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354") +
+       source = "Original MTurk study, conducted 12/11-12/13") +
   theme_bw()
 
 
@@ -477,8 +399,7 @@ ggplot(aes(x = condition, y = mean_origin_country, fill = condition)) +
        subtitle = "Scale of 1 (Strongly Disagree) to 5 (Strongly Agree)",
        x = "Treatment Group",
        y = "Mean Attitude about Origin Country",
-       source = "Original MTurk study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354") +
+       source = "Original MTurk study, conducted 12/11-12/13") +
   theme_bw()
 
 ```
@@ -497,8 +418,7 @@ fav_regression_graph <-
        subtitle = "favorability ~ treatment, Feeling Thermometer of 0 (Coldest) to 100 (Warmest)",
        x = "Treatment Group",
        y = "Favorability",
-       source = "Original mTurk study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354") +
+       source = "Original mTurk study, conducted 12/11-12/13") +
   theme_bw()
 
 
@@ -552,8 +472,7 @@ trust_regression_graph <-
        subtitle = "trust ~ treatment, Scale of 1 (Strongly Disagree) to 5 (Strongly Agree)",
        x = "Treatment Group",
        y = "Assigned Trust",
-       source = "Original mTurk study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354") +
+       source = "Original mTurk study, conducted 12/11-12/13") +
   theme_bw()
 
 china_biz_regression_graph <-
@@ -571,8 +490,7 @@ china_biz_regression_graph <-
        Scale of 1 (Ban Chinese companies) to 3 (Undertake friendly cooperation)",
        x = "Treatment Group",
        y = "Policy Preference",
-       source = "Original mTurk study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354") +
+       source = "Original mTurk study, conducted 12/11-12/13") +
   theme_bw()
 
 china_ppl_fav_regression_graph <-
@@ -588,8 +506,7 @@ china_ppl_fav_regression_graph <-
        subtitle = "people_favorability ~ treatment, Feeling Thermometer of 0 (Coldest) to 100 (Warmest)",
        x = "Treatment Group",
        y = "Favorability",
-       source = "Original mTurk study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354") +
+       source = "Original mTurk study, conducted 12/11-12/13") +
   theme_bw()
 
 keep_regression_graph <-
@@ -605,8 +522,7 @@ keep_regression_graph <-
        subtitle = "keep/delete ~ treatment, Scale of 1 (Strongly Disagree) to 5 (Strongly Agree)",
        x = "Treatment Group",
        y = "Attitude of Origin Country Factoring into Download",
-       source = "Original mTurk study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354") +
+       source = "Original mTurk study, conducted 12/11-12/13") +
   theme_bw()
 ```
 

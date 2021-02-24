@@ -1,0 +1,249 @@
+---
+title: "party_split"
+author: "Joshua Berry"
+date: "2/23/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(GGally)
+library(knitr)
+library(gtsummary)
+library(gt)
+library(rstatix)
+```
+
+## R Markdown
+
+```{r}
+results <- read.csv("results.csv")
+
+numeric_results <- read_csv("numeric_results.csv",
+                          col_types = cols(Q36 = col_number(),
+                          Q35 = col_number(),
+                          Q37 = col_number(),
+                          Q40 = col_number(),
+                          Q41 = col_number(),
+                          Q43 = col_number(),
+                          Q45_1 = col_number(),
+                          Q47_1  = col_number(),
+                          Q49  = col_number(),
+                          Q50 = col_number(),
+                          Q51_1 = col_number(),
+                          Q51_2  = col_number(),
+                          Q51_3  = col_number(),
+                          Q51_4 = col_number(),
+                          Q51_5  = col_number(),
+                          Q56_4  = col_number(),
+                          Q2 = col_number(),
+                          Q14  = col_number(),
+                          Q16  = col_number(),
+                          Q18 = col_number(),
+                          Q19  = col_number(),
+                          Q27  = col_number(),
+                          Q26 = col_number(),
+                          Q20  = col_number(),
+                          condition = col_factor(),
+                          Q54  = col_number())) %>%
+  filter(condition %in% c("usabaseapp", "chinabaseapp",
+                         "chinalovedapp", "chinahatedapp", 
+                         "estoniabaseapp")) %>%
+    rename(state = Q2, gender = Q14, age = Q16, race = Q18, asian_ethnicity = Q19,
+         social_media = Q27, political_identification = Q20, education = Q26,
+         income = Q54) %>%
+  mutate(condition_scale = case_when(condition == "usabaseapp" ~ 1,
+                                     condition == "chinabaseapp" ~ 2,
+                                     condition == "chinahatedapp" ~ 3,
+                                     condition == "chinalovedapp" ~ 4,
+                                     condition == "estoniabaseapp" ~ 5,
+                                     TRUE ~ NA_real_)) %>%
+    mutate(political_identification = case_when(political_identification == 1 ~ "Democrat",
+                                     political_identification == 2 ~ "Republican",
+                                     political_identification == 3 ~ "Independent",
+                                     political_identification == 4 ~ "Independent",
+                                     TRUE ~ NA_character_)) %>%
+    mutate(race = case_when(race == 1 ~ "White",
+                                     race == 2 ~ "Black",
+                                     race == 3 ~ "Other",
+                                     race == 4 ~ "Asian",
+                                     race == 5 ~ "Asian",
+                                     race == 6 ~ "Other",
+                                     TRUE ~ NA_character_)) %>%
+      mutate(gender = case_when(gender == 1 ~ "Male",
+                                     gender == 2 ~ "Female",
+                                     TRUE ~ NA_character_)) %>%
+    mutate(education = case_when(education == 1 ~ 0,
+                                     education == 2 ~ 4,
+                                     education == 3 ~ 6,
+                                     education == 4 ~ 7,
+                                     education == 5 ~ 10,
+                                     education == 6 ~ 12,
+                                     education == 7 ~ 17,
+                                     education == 8 ~ 17,
+                                     TRUE ~ NA_real_))
+
+numeric_results$condition <- relevel(numeric_results$condition, ref = "usabaseapp")
+
+mean(numeric_results$age, na.rm = TRUE)
+
+democrat_results <-
+  numeric_results %>%
+  filter(political_identification == "Democrat")
+
+gop_ind_results <-
+  numeric_results %>%
+  filter(political_identification == "Independent" | political_identification == "Republican")
+         
+
+gop_results <-
+  numeric_results %>%
+  filter(political_identification == "Republican")
+
+ind_results <-
+  numeric_results %>%
+  filter(political_identification == "Independent")
+  
+
+```
+
+
+```{r}
+dem.china.fav.lm <- lm(Q45_1 ~ gender + age + race + education 
+                + condition, data = democrat_results)
+
+summary(dem.china.fav.lm)
+
+gop.china.fav.lm <- lm(Q45_1 ~ gender + age + race + education 
+                + condition, data = gop_results)
+
+summary(gop.china.fav.lm)
+
+ind.china.fav.lm <- lm(Q45_1 ~ gender + age + race + education 
+                + condition, data = ind_results)
+
+summary(ind.china.fav.lm)
+
+
+dem.china.fav.tbl <-  tbl_regression(dem.china.fav.lm, intercept = TRUE,
+                 estimate_fun = function(x) style_sigfig(x, digits = 4)) %>%
+  as_gt() %>%
+  tab_header(title = "Tbl. x: Regression of Country-of-Origin Treatment Group Against Democratic Favorability Towards China", 
+  subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)") %>%
+    tab_source_note(md("Original MTurk Study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
+                        n = 354"))
+
+gop.china.fav.tbl <-  tbl_regression(gop.china.fav.lm, intercept = TRUE,
+                 estimate_fun = function(x) style_sigfig(x, digits = 4)) %>%
+  as_gt() %>%
+  tab_header(title = "Tbl. x: Regression of Country-of-Origin Treatment Group Against Republican Favorability Towards China", 
+  subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)") %>%
+    tab_source_note(md("Original MTurk Study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
+                        n = 354"))
+
+ind.china.fav.tbl <-  tbl_regression(ind.china.fav.lm, intercept = TRUE,
+                 estimate_fun = function(x) style_sigfig(x, digits = 4)) %>%
+  as_gt() %>%
+  tab_header(title = "Tbl. x: Regression of Country-of-Origin Treatment Group Against Independent Favorability Towards China", 
+  subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)") %>%
+    tab_source_note(md("Original MTurk Study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
+                        n = 354"))
+
+```
+
+
+```{r}
+dem_mean_china_fav <-
+  democrat_results %>%
+  group_by(condition) %>%
+  summarize(mean_china_fav = mean(Q45_1, na.rm = TRUE),
+            sd = sd(Q45_1, na.rm = TRUE),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n),
+         lower.ci = mean_china_fav - qt(1 - (0.05 / 2), n - 1) * se,
+         upper.ci = mean_china_fav + qt(1 - (0.05 / 2), n - 1) * se)
+
+dem_fav_graph <-
+  dem_mean_china_fav %>%
+ggplot(aes(x = condition, y = mean_china_fav, fill = condition)) +
+  geom_col(position=position_dodge()) +
+  geom_errorbar(mapping = aes(x = condition, ymin = lower.ci, ymax = upper.ci),
+                width = .2) + 
+  ylim(0, 100) +
+  scale_fill_discrete(name = "Condition", labels = c("USA Base App", "China Hated App",
+                         "China Loved App", "China Base App", "Alt. Base App")) +
+  scale_x_discrete(labels=c("USA Base App", "China Hated App",
+                         "China Loved App", "China Base App", "Alt. Base App")) +
+  labs(title = "The Effect of App Treatment on Democratic Favorability Towards China",
+       subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)",
+       x = "Treatment Group",
+       y = "Mean Favorability towards China",
+       source = "Original MTurk study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
+                        n = 354") +
+  theme_bw()
+```
+
+
+```{r}
+gop_mean_china_fav <-
+  gop_results %>%
+  group_by(condition) %>%
+  summarize(mean_china_fav = mean(Q45_1, na.rm = TRUE),
+            sd = sd(Q45_1, na.rm = TRUE),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n),
+         lower.ci = mean_china_fav - qt(1 - (0.05 / 2), n - 1) * se,
+         upper.ci = mean_china_fav + qt(1 - (0.05 / 2), n - 1) * se)
+
+gop_fav_graph <-
+  gop_mean_china_fav %>%
+ggplot(aes(x = condition, y = mean_china_fav, fill = condition)) +
+  geom_col(position=position_dodge()) +
+  geom_errorbar(mapping = aes(x = condition, ymin = lower.ci, ymax = upper.ci),
+                width = .2) + 
+  ylim(0, 100) +
+  scale_fill_discrete(name = "Condition", labels = c("USA Base App", "China Hated App",
+                         "China Loved App", "China Base App", "Alt. Base App")) +
+  scale_x_discrete(labels=c("USA Base App", "China Hated App",
+                         "China Loved App", "China Base App", "Alt. Base App")) +
+  labs(title = "The Effect of App Treatment on Republican Favorability Towards China",
+       subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)",
+       x = "Treatment Group",
+       y = "Mean Favorability towards China",
+       source = "Original MTurk study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
+                        n = 354") +
+  theme_bw()
+```
+
+```{r}
+ind_mean_china_fav <-
+  ind_results %>%
+  group_by(condition) %>%
+  summarize(mean_china_fav = mean(Q45_1, na.rm = TRUE),
+            sd = sd(Q45_1, na.rm = TRUE),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n),
+         lower.ci = mean_china_fav - qt(1 - (0.05 / 2), n - 1) * se,
+         upper.ci = mean_china_fav + qt(1 - (0.05 / 2), n - 1) * se)
+
+ind_fav_graph <-
+  ind_mean_china_fav %>%
+ggplot(aes(x = condition, y = mean_china_fav, fill = condition)) +
+  geom_col(position=position_dodge()) +
+  geom_errorbar(mapping = aes(x = condition, ymin = lower.ci, ymax = upper.ci),
+                width = .2) + 
+  ylim(0, 100) +
+  scale_fill_discrete(name = "Condition", labels = c("USA Base App", "China Hated App",
+                         "China Loved App", "China Base App", "Alt. Base App")) +
+  scale_x_discrete(labels=c("USA Base App", "China Hated App",
+                         "China Loved App", "China Base App", "Alt. Base App")) +
+  labs(title = "The Effect of App Treatment on Independent Favorability Towards China",
+       subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)",
+       x = "Treatment Group",
+       y = "Mean Favorability towards China",
+       source = "Original MTurk study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
+                        n = 354") +
+  theme_bw()
+```
+
