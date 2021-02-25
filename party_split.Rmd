@@ -20,7 +20,7 @@ library(rstatix)
 ```{r}
 results <- read.csv("results.csv")
 
-numeric_results <- read_csv("numeric_results_cut.csv",
+numeric_results <- read_csv("numeric_results_3.csv",
                           col_types = cols(Q36 = col_number(),
                           Q35 = col_number(),
                           Q37 = col_number(),
@@ -129,26 +129,26 @@ summary(ind.china.fav.lm)
 dem.china.fav.tbl <-  tbl_regression(dem.china.fav.lm, intercept = TRUE,
                  estimate_fun = function(x) style_sigfig(x, digits = 4)) %>%
   as_gt() %>%
-  tab_header(title = "Tbl. x: Regression of Country-of-Origin Treatment Group Against Democratic Favorability Towards China", 
+  tab_header(title = "Tbl. A: Regression of Country-of-Origin Treatment Group Against Democratic Favorability Towards China", 
   subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)") %>%
     tab_source_note(md("Original MTurk Study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354"))
+                        n = 163"))
 
 gop.china.fav.tbl <-  tbl_regression(gop.china.fav.lm, intercept = TRUE,
                  estimate_fun = function(x) style_sigfig(x, digits = 4)) %>%
   as_gt() %>%
-  tab_header(title = "Tbl. x: Regression of Country-of-Origin Treatment Group Against Republican Favorability Towards China", 
+  tab_header(title = "Tbl. B: Regression of Country-of-Origin Treatment Group Against Republican Favorability Towards China", 
   subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)") %>%
     tab_source_note(md("Original MTurk Study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354"))
+                        n = 103"))
 
 ind.china.fav.tbl <-  tbl_regression(ind.china.fav.lm, intercept = TRUE,
                  estimate_fun = function(x) style_sigfig(x, digits = 4)) %>%
   as_gt() %>%
-  tab_header(title = "Tbl. x: Regression of Country-of-Origin Treatment Group Against Independent Favorability Towards China", 
+  tab_header(title = "Tbl. C: Regression of Country-of-Origin Treatment Group Against Independent Favorability Towards China", 
   subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)") %>%
     tab_source_note(md("Original MTurk Study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354"))
+                        n = 68"))
 
 ```
 
@@ -175,12 +175,12 @@ ggplot(aes(x = condition, y = mean_china_fav, fill = condition)) +
                          "China Loved App", "China Base App", "Alt. Base App")) +
   scale_x_discrete(labels=c("USA Base App", "China Hated App",
                          "China Loved App", "China Base App", "Alt. Base App")) +
-  labs(title = "The Effect of App Treatment on Democratic Favorability Towards China",
+  labs(title = "Fig. A: The Effect of App Treatment on Democratic Favorability Towards China",
        subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)",
        x = "Treatment Group",
        y = "Mean Favorability towards China",
        source = "Original MTurk study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354") +
+                        n = 163") +
   theme_bw()
 ```
 
@@ -207,12 +207,12 @@ ggplot(aes(x = condition, y = mean_china_fav, fill = condition)) +
                          "China Loved App", "China Base App", "Alt. Base App")) +
   scale_x_discrete(labels=c("USA Base App", "China Hated App",
                          "China Loved App", "China Base App", "Alt. Base App")) +
-  labs(title = "The Effect of App Treatment on Republican Favorability Towards China",
+  labs(title = "Fig. B: The Effect of App Treatment on Republican Favorability Towards China",
        subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)",
        x = "Treatment Group",
        y = "Mean Favorability towards China",
        source = "Original MTurk study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354") +
+                        n = 103") +
   theme_bw()
 ```
 
@@ -238,12 +238,12 @@ ggplot(aes(x = condition, y = mean_china_fav, fill = condition)) +
                          "China Loved App", "China Base App", "Alt. Base App")) +
   scale_x_discrete(labels=c("USA Base App", "China Hated App",
                          "China Loved App", "China Base App", "Alt. Base App")) +
-  labs(title = "The Effect of App Treatment on Independent Favorability Towards China",
+  labs(title = "Fig. C: The Effect of App Treatment on Independent Favorability Towards China",
        subtitle = "Feeling Thermometer of 0 (Coldest) to 100 (Warmest)",
        x = "Treatment Group",
        y = "Mean Favorability towards China",
        source = "Original MTurk study, conducted 2020 Dec. 11-12 & 2021 Feb. 21,
-                        n = 354") +
+                        n = 68") +
   theme_bw()
 ```
 
